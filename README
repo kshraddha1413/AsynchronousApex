@@ -1,3 +1,6 @@
+**FUTURE APEX**
+
+
 **Create an Apex class that uses the @future annotation to update Account records.**
 
 Create an Apex class with a method using the @future annotation that accepts a List of Account IDs and updates a custom field on the Account object with the number of contacts associated to the Account. Write unit tests that achieve 100% code coverage for the class.
@@ -50,3 +53,68 @@ public class AccountProcessorTest {
         
     }  
 }
+
+
+**BATCH APEX**
+Create an Apex class that uses Batch Apex to update Lead records.
+Create an Apex class that implements the Database.Batchable interface to update all Lead records in the org with a specific LeadSource. Write unit tests that achieve 100% code coverage for the class.
+Create an Apex class called 'LeadProcessor' that uses the Database.Batchable interface.
+Use a QueryLocator in the start method to collect all Lead records in the org.
+The execute method must update all Lead records in the org with the LeadSource value of 'Dreamforce'.
+Create an Apex test class called 'LeadProcessorTest'.
+In the test class, insert 200 Lead records, execute the 'LeadProcessor' Batch class and test that all Lead records were updated correctly.
+The unit tests must cover all lines of code included in the LeadProcessor class, resulting in 100% code coverage.
+Run your test class at least once (via 'Run All' tests the Developer Console) before attempting to verify this challenge.
+
+global class LeadProcessor implements Database.Batchable<sObject>{
+            global Integer counter=0;
+    global Database.QueryLocator start(Database.BatchableContext bc){
+        return Database.getQueryLocator('SELECT ID, Name, LeadSource FROM LEAD');
+    }
+    global void execute(Database.BatchableContext bc , List<Lead> scope){
+        List<Lead> leads = new List<Lead>();
+        For(Lead lead : scope){
+            lead.LeadSource = 'Dreamforce';
+             leads.add(lead);
+            counter=counter+1;
+        }
+       update leads;
+     }
+    global void finish(Database.BatchableContext bc){
+        system.debug(Counter);
+       Id job = bc.getJobId();
+        System.debug(job);
+    }
+}
+
+
+
+
+@isTest
+private class LeadProcessorTest {
+    @isTest
+    static void testLeadProcessor(){
+        List<Lead> leadList = new List<Lead>();
+        for(Integer i=0; i<200; i++){
+        Lead lead1=new Lead();
+        lead1.LastName='testlead';
+        lead1.Company='xyz';
+        lead1.status='status';
+        leadList.add(lead1);
+    }
+    Insert leadList;
+        
+        Test.startTest();
+        LeadProcessor leadproc = new LeadProcessor();
+        Id jobid = database.executeBatch(leadproc);
+        Test.stopTest();
+           
+    }
+    
+
+}
+
+
+
+
+
