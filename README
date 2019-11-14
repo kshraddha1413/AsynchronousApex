@@ -191,42 +191,41 @@ global class DailyLeadProcessor implements Schedulable{
     global void execute(SchedulableContext cxt){
         List<Lead> leads = [SELECT ID, Name FROM LEAD WHERE LeadSource = null LIMIT 200];
         List<Lead> listLeads = new List<Lead>();
-        if(!listLeads.isEmpty())
-        {
-            for(Lead lead : listLeads){
-                lead.LeadSource = 'DreamForce';
+                
+            for(Lead lead : leads){
+                lead.LeadSource = 'Dreamforce';
                 listLeads.add(lead);
             }
-            update listLeads;
+                       update listLeads;
         }
-        
-    }
-
 }
 
 
 
 @isTest
 public class DailyLeadProcessorTest {
-    @isTest
-    static void setup(){
+    public static String sch = '0 0 0 15 3 ? 2022';
+    
+    static testmethod void testScheduledJob(){
         List<Lead> listLead = new List<Lead>();
-        For(Integer i=0; i<200; i++)
+        For(Integer i=0; i < 200; i++)
         {
             Lead lead = new Lead(Company = 'ctest' +i , LastName = 'Ltest' +i);
             listLead.add(lead);
         }
         insert listLead;
-    }
-    static testmethod void testScheduledJob(){
-        DailyLeadProcessor dlp = new DailyLeadProcessor();
-        String sch = '0 5 12 " " ?';
+    
+    Map<Id, Lead> ledMap = new Map<Id, Lead>(listLead);
+        List<Id> ledIds = new List<Id>(ledMap.keySet());
+        
+        
           Test.startTest();
-        String jobId = system.Schedule('ScheduledApexText', sch, dlp);
-        List<Lead> listLead = [SELECT ID FROM Lead WHERE LeadSource = null LIMIT 200];
-        system.assertEquals(200, listLead.size());
+        String jobId = System.Schedule('ScheduledApexText', sch, new DailyLeadProcessor());
+        List<Lead> lt = [SELECT ID FROM Lead WHERE LeadSource = null and id in :ledIds];
+        system.assertEquals(200, lt.size());
+        Test.stopTest();
             
-    }
+    }  
 }
 
 
